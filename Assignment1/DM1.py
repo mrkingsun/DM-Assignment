@@ -122,8 +122,8 @@ data_raw = pd.read_csv("data/horse-colic.csv",names=nameall,na_values="?")
 # plt.subplots_adjust(wspace=0.3, hspace=0.3)
 #
 #
-# fig.savefig('image/fill_most.jpg')
-# data_fill.to_csv('data/fill_most.csv', mode='w', encoding='utf-8', index=False, header=False)
+# fig.savefig('image/fill_frequency.jpg')
+# data_fill.to_csv('data/fill_frequency.csv', mode='w', encoding='utf-8', index=False, header=False)
 
 
 # # 3. 通过属性的相关关系来填补缺失值
