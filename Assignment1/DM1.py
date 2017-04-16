@@ -126,13 +126,20 @@ data_raw = pd.read_csv("data/horse-colic.csv",names=nameall,na_values="?")
 # data_fill.to_csv('data/fill_frequency.csv', mode='w', encoding='utf-8', index=False, header=False)
 
 
-# # 3. 通过属性的相关关系来填补缺失值
-#这里简单的用插值计算填补，实际上应该计算每一列的相关性。
-#
-# data_fill = data_raw.copy()
-# # 对数值型属性的每一列，进行插值运算
-# for item in name_value:
-#     data_fill[item].interpolate(inplace=True)
+# 3. 通过属性的相关关系来填补缺失值
+# 这里简单的用插值计算填补，实际上应该计算每一列的相关性,但每一列和其他列似乎都不想关。。
+
+data_fill = data_raw.copy()
+# 对数值型属性的每一列，进行插值运算
+for item in name_value:
+
+
+    # print item
+    # for item1 in name_value:
+    #
+    #     print data_fill[item].corr(data_fill[item1])
+    # print("\n")
+    data_fill[item].interpolate(inplace=True)
 #
 # fig = plt.figure(figsize=(25, 15))
 # i = 1
@@ -147,66 +154,70 @@ data_raw = pd.read_csv("data/horse-colic.csv",names=nameall,na_values="?")
 # fig.savefig('image/fill_corelation.jpg')
 # data_fill.to_csv('data/fill_corelation.csv', mode='w', encoding='utf-8', index=False,header=False)
 #
+
+
+
+
+# #
+# # 4.通过数据对象之间的相似性来填补缺失值
 #
-# 4.通过数据对象之间的相似性来填补缺失值
-
-# 将缺失值设为0，对数据集进行正则化
-
-# 建立原始数据的拷贝，用于正则化处理
-data_norm = data_raw.copy()
-# 将数值属性的缺失值替换为0
-data_norm[name_value] = data_norm[name_value].fillna(0)
-# 对数据进行正则化
-data_norm[name_value] = data_norm[name_value].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
-
-nan_list = pd.isnull(data_raw).any(1).nonzero()[0]
-
-# 构造分数表
-score = {}
-range_length = len(data_raw)
-for i in range(0, range_length):
-    score[i] = {}
-    for j in range(0, range_length):
-        score[i][j] = 0
-
-# 在处理后的数据中，对每两条数据条目计算差异性得分，分值越高差异性越大
-for i in range(0, range_length):
-    for j in range(i, range_length):
-        for item in name_category:
-            if data_norm.iloc[i][item] != data_norm.iloc[j][item]:
-                score[i][j] += 1
-        for item in name_value:
-            temp = abs(data_norm.iloc[i][item] - data_norm.iloc[j][item])
-            score[i][j] += temp
-        score[j][i] = score[i][j]
-
-# 建立原始数据的拷贝
-data_fill = data_raw.copy()
-
-# 对有缺失值的条目，用和它相似度最高（得分最低）的数据条目中对应属性的值替换
-for index in nan_list:
-    best_friend = sorted(score[index].items(), key=operator.itemgetter(1), reverse=False)[1][0]
-    for item in name_value:
-        if pd.isnull(data_fill.iloc[index][item]):
-            if pd.isnull(data_raw.iloc[best_friend][item]):
-                data_fill.ix[index, item] = data_raw[item].value_counts().idxmax()
-            else:
-                data_fill.ix[index, item] = data_raw.iloc[best_friend][item]
-
-fig = plt.figure(figsize=(25, 15))
-i = 1
-for item in nameall:
-    ax = fig.add_subplot(5, 6, i)
-    ax.set_title(item)
-    data_raw[item].plot(ax=ax, alpha=0.5, kind='hist', label='raw', legend=True)
-    data_fill[item].plot(ax=ax, alpha=0.5, kind='hist', label='fill', legend=True)
-    i += 1
-plt.subplots_adjust(wspace=0.3, hspace=0.3)
-
-
-
-# 保存图像和处理后数据
-fig.savefig('image/fill_similarity.jpg')
-data_fill.to_csv('data/fill_similarity.csv', mode='w', encoding='utf-8', index=False, header=False)
+# # 将缺失值设为0，对数据集进行正则化
+#
+# # 建立原始数据的拷贝，用于正则化处理
+# data_norm = data_raw.copy()
+# # 将数值属性的缺失值替换为0
+# data_norm[name_value] = data_norm[name_value].fillna(0)
+# # 对数据进行正则化
+# data_norm[name_value] = data_norm[name_value].apply(lambda x: (x - np.mean(x)) / (np.max(x) - np.min(x)))
+#
+# nan_list = pd.isnull(data_raw).any(1).nonzero()[0]
+#
+# # 构造分数表
+# score = {}
+# range_length = len(data_raw)
+# for i in range(0, range_length):
+#     score[i] = {}
+#     for j in range(0, range_length):
+#         score[i][j] = 0
+#
+# # 在处理后的数据中，对每两条数据条目计算差异性得分，分值越高差异性越大
+# for i in range(0, range_length):
+#     for j in range(i, range_length):
+#         for item in name_category:
+#             if data_norm.iloc[i][item] != data_norm.iloc[j][item]:
+#                 score[i][j] += 1
+#         for item in name_value:
+#             temp = abs(data_norm.iloc[i][item] - data_norm.iloc[j][item])
+#             score[i][j] += temp
+#         score[j][i] = score[i][j]
+#
+# # 建立原始数据的拷贝
+# data_fill = data_raw.copy()
+#
+# # 对有缺失值的条目，用和它相似度最高（得分最低）的数据条目中对应属性的值替换
+# for index in nan_list:
+#     best_friend = sorted(score[index].items(), key=operator.itemgetter(1), reverse=False)[1][0]
+#     for item in name_value:
+#         if pd.isnull(data_fill.iloc[index][item]):
+#             if pd.isnull(data_raw.iloc[best_friend][item]):
+#                 data_fill.ix[index, item] = data_raw[item].value_counts().idxmax()
+#             else:
+#                 data_fill.ix[index, item] = data_raw.iloc[best_friend][item]
+#
+# fig = plt.figure(figsize=(25, 15))
+# i = 1
+# for item in nameall:
+#     ax = fig.add_subplot(5, 6, i)
+#     ax.set_title(item)
+#     data_raw[item].plot(ax=ax, alpha=0.5, kind='hist', label='raw', legend=True)
+#     data_fill[item].plot(ax=ax, alpha=0.5, kind='hist', label='fill', legend=True)
+#     i += 1
+# plt.subplots_adjust(wspace=0.3, hspace=0.3)
+#
+#
+#
+# # 保存图像和处理后数据
+# fig.savefig('image/fill_similarity.jpg')
+# data_fill.to_csv('data/fill_similarity.csv', mode='w', encoding='utf-8', index=False, header=False)
 
 
