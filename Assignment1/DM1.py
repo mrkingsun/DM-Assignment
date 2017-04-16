@@ -127,7 +127,7 @@ data_raw = pd.read_csv("data/horse-colic.csv",names=nameall,na_values="?")
 
 
 # # 3. 通过属性的相关关系来填补缺失值
-#
+#这里简单的用插值计算填补，实际上应该计算每一列的相关性。
 #
 # data_fill = data_raw.copy()
 # # 对数值型属性的每一列，进行插值运算
